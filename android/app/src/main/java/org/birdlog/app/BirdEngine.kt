@@ -87,7 +87,11 @@ object BirdEngine {
         send(context,Protocol.pkt(1,Protocol.TOTAL to birds.size,Protocol.RUN_ID to id.toInt(),Protocol.NAME to (o?.title?:"New outing")))
         val totals=if(id>0) db.totals(id) else emptyMap()
         birds.drop(safePage*12).take(12).forEachIndexed { i,b ->
-            send(context,Protocol.pkt(2,Protocol.INDEX to i,Protocol.COUNT to (totals[b.code]?:0),Protocol.NAME to b.common,Protocol.SCI to b.scientific))
+            val row = if(b.scientific.isBlank())
+                Protocol.pkt(2,Protocol.INDEX to i,Protocol.COUNT to (totals[b.code]?:0),Protocol.NAME to b.common)
+            else
+                Protocol.pkt(2,Protocol.INDEX to i,Protocol.COUNT to (totals[b.code]?:0),Protocol.NAME to b.common,Protocol.SCI to b.scientific)
+            send(context,row)
         }
     }
     suspend fun sendMap(context:Context){
