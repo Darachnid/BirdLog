@@ -33,7 +33,7 @@ class MainActivity:Activity(){
     private val db by lazy{BirdStore.get(this)}
     private fun d(n:Int)=(n*resources.displayMetrics.density).toInt()
     override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);requestPermissionsIfNeeded();build()}
-    override fun onResume(){super.onResume();if(::content.isInitialized)render()}
+    override fun onResume(){super.onResume();if(::content.isInitialized)render();if(BirdStore.get(this).activeRun()>0 && (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED))startTracking()}
     private fun requestPermissionsIfNeeded(){
         val needed=mutableListOf<String>()
         if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
