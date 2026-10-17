@@ -37,15 +37,17 @@ object BirdEngine {
         if(previous>0)store.saveRun(previous)
         val id=store.newRun(title,pos?.latitude,pos?.longitude)
         selectedRun=id; refresh(context)
-        try { context.startForegroundService(android.content.Intent(context,TrackService::class.java)) }
-        catch (e: Exception) { lastStatus="Open Android BirdLog to enable GPS" }
+        // A Pebble command arrives through a background listener. Android 14+
+        // disallows starting a location FGS there without an exemption.
+        // The visible Activity starts GPS after checking runtime permissions.
         return id
     }
     fun open(context:Context,id:Long){
         val db=BirdStore.get(context);if(db.run(id)==null)return
         db.resume(id);selectedRun=id;refresh(context)
-        try { context.startForegroundService(android.content.Intent(context,TrackService::class.java)) }
-        catch (e: Exception) { lastStatus="Open Android BirdLog to enable GPS" }
+        // A Pebble command arrives through a background listener. Android 14+
+        // disallows starting a location FGS there without an exemption.
+        // The visible Activity starts GPS after checking runtime permissions.
     }
     fun save(context:Context){
         val db=BirdStore.get(context);val id=runId(context)

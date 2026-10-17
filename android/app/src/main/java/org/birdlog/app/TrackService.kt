@@ -28,8 +28,26 @@ class TrackService:Service(),LocationListener {
         val notice=Notification.Builder(this,chan).setSmallIcon(org.birdlog.app.R.drawable.ic_bird)
             .setContentTitle("BirdLog: outing in progress").setContentText("Recording GPS route and sighting locations")
             .setContentIntent(pi).addAction(Notification.Action.Builder(android.graphics.drawable.Icon.createWithResource(this,R.drawable.ic_bird),"Stop GPS",stop).build()).build()
-        if(Build.VERSION.SDK_INT>=34)startForeground(23,notice,android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
-        else startForeground(23,notice)
+        val hasLocationPermission =
+            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED
+        if(!hasLocationPermission){
+            Log.w("BirdLog","GPS not started: location permission missing")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        try{
+            if(Build.VERSION.SDK_INT>=34)startForeground(23,notice,android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+            else startForeground(23,notice)
+        }catch(ex:SecurityException){
+            Log.w("BirdLog","GPS not started: Android foreground-service eligibility denied",ex)
+            stopSelf()
+            return START_NOT_STICKY
+        }catch(ex:android.app.ForegroundServiceStartNotAllowedException){
+            Log.w("BirdLog","GPS not started: background foreground-service restriction",ex)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         try{
             if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
                 locations.requestLocationUpdates(LocationManager.GPS_PROVIDER,10000L,8f,this,Looper.getMainLooper());enabled=true

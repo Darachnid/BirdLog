@@ -122,11 +122,24 @@ class MainActivity:Activity(){
         }.show()
     }
     private fun startTracking(){
-        if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED){
-            try{startForegroundService(Intent(this,TrackService::class.java))}
-            catch(ex:Exception){notify("GPS service could not start: ${ex.message}")}
-        }else requestPermissionsIfNeeded()
+        val hasLocationPermission =
+            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED
+        if(!hasLocationPermission){
+            requestPermissionsIfNeeded()
+            notify("Enable location access to record a GPS track; bird logging still works")
+            return
+        }
+        if(!lifecycleIsForeground){
+            notify("Open BirdLog to start GPS tracking")
+            return
+        }
+        try{startForegroundService(Intent(this,TrackService::class.java))}
+        catch(ex:Exception){notify("GPS unavailable: ${ex.message}. Bird logging is still enabled.")}
     }
+    private var lifecycleIsForeground=false
+    override fun onStart(){super.onStart();lifecycleIsForeground=true}
+    override fun onStop(){lifecycleIsForeground=false;super.onStop()}
     private fun savedRuns(){
         val list=db.runs()
         if(list.isEmpty()){notify("No saved runs");return}
