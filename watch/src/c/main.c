@@ -321,7 +321,10 @@ static void recv(DictionaryIterator *it,void *ctx){
   char *name=string(dict_find(it,KEY_NAME)),*sci=string(dict_find(it,KEY_SCI));
   switch(type){
     case 1:
+      clear_rows();
       s_total_species=value(dict_find(it,KEY_TOTAL),s_total_species);
+      if(s_total_species==0){s_page=0;s_selected=0;}
+      else if(s_page*PER_PAGE>=s_total_species){s_page=0;s_selected=0;}
       s_current_run=value(dict_find(it,KEY_RUN_ID),s_current_run);
       if(name)snprintf(s_title,sizeof(s_title),"%s",name);
       break;
