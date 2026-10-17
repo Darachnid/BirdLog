@@ -19,6 +19,7 @@ data class Outing(val id:Long,val started:Long,val ended:Long?,val title:String,
     val country:String,val region:String,val observers:Int,val complete:Boolean,val latitude:Double?,val longitude:Double?)
 
 class BirdStore private constructor(context:Context):SQLiteOpenHelper(context.applicationContext,"birdlog.db",null,2){
+    private val appContext:Context=context.applicationContext
     companion object {
         @Volatile private var instance:BirdStore?=null
         fun get(context:Context):BirdStore=instance ?: synchronized(this){instance ?: BirdStore(context).also{instance=it}}
