@@ -101,7 +101,7 @@ norpar|Northern Parula|Setophaga americana
         s.close()
     }
     @Synchronized fun getSetting(k:String,def:String=""):String{readableDatabase.rawQuery("SELECT value FROM settings WHERE key=?",arrayOf(k)).use{return if(it.moveToFirst())it.getString(0)else def}}
-    @Synchronized fun setSetting(k:String,v:String){writableDatabase.execSQL("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)",arrayOf(k,v))}
+    @Synchronized fun setSetting(k:String,v:String){writableDatabase.execSQL("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)",arrayOf<Any?>(k,v))}
     private var maChecked = false
     @Synchronized private fun ensureMassachusetts(){
         if(maChecked)return
@@ -147,13 +147,13 @@ norpar|Northern Parula|Setophaga americana
         }
         val id=writableDatabase.insertOrThrow("runs",null,cv);setSetting("active_run",id.toString());return id
     }
-    @Synchronized fun saveRun(id:Long){writableDatabase.execSQL("UPDATE runs SET ended=COALESCE(ended,?) WHERE id=?",arrayOf(System.currentTimeMillis(),id));if(activeRun()==id)setSetting("active_run","")}
-    @Synchronized fun resume(id:Long){writableDatabase.execSQL("UPDATE runs SET ended=NULL WHERE id=?",arrayOf(id));setSetting("active_run",id.toString())}
+    @Synchronized fun saveRun(id:Long){writableDatabase.execSQL("UPDATE runs SET ended=COALESCE(ended,?) WHERE id=?",arrayOf<Any?>(System.currentTimeMillis(),id));if(activeRun()==id)setSetting("active_run","")}
+    @Synchronized fun resume(id:Long){writableDatabase.execSQL("UPDATE runs SET ended=NULL WHERE id=?",arrayOf<Any?>(id));setSetting("active_run",id.toString())}
     @Synchronized fun activeRun():Long=getSetting("active_run").toLongOrNull()?:0L
     @Synchronized fun run(id:Long):Outing?{readableDatabase.rawQuery("SELECT id,started,ended,title,protocol,country,region,observers,complete,lat,lon FROM runs WHERE id=?",arrayOf(id.toString())).use{if(it.moveToFirst())return Outing(it.getLong(0),it.getLong(1),if(it.isNull(2))null else it.getLong(2),it.getString(3),it.getString(4),it.getString(5),it.getString(6),it.getInt(7),it.getInt(8)!=0,if(it.isNull(9))null else it.getDouble(9),if(it.isNull(10))null else it.getDouble(10))};return null}
     @Synchronized fun runs():List<Outing>{val result=mutableListOf<Outing>();readableDatabase.rawQuery("SELECT id FROM runs ORDER BY started DESC",null).use{while(it.moveToNext())run(it.getLong(0))?.let(result::add)};return result}
     @Synchronized fun updateRun(id:Long,title:String,protocol:String,country:String,region:String,observers:Int,complete:Boolean){
-        writableDatabase.execSQL("UPDATE runs SET title=?,protocol=?,country=?,region=?,observers=?,complete=? WHERE id=?",arrayOf(title,protocol,country,region,observers,if(complete)1 else 0,id))
+        writableDatabase.execSQL("UPDATE runs SET title=?,protocol=?,country=?,region=?,observers=?,complete=? WHERE id=?",arrayOf<Any?>(title,protocol,country,region,observers,if(complete)1 else 0,id))
     }
     @Synchronized fun sightings(id:Long):List<Sighting>{val a=mutableListOf<Sighting>();readableDatabase.rawQuery("SELECT id,run_id,code,common,scientific,delta,time_ms,lat,lon,accuracy,source,note FROM sightings WHERE run_id=? ORDER BY time_ms,id",arrayOf(id.toString())).use{while(it.moveToNext())a+=Sighting(it.getLong(0),it.getLong(1),it.getString(2),it.getString(3),it.getString(4),it.getInt(5),it.getLong(6),if(it.isNull(7))null else it.getDouble(7),if(it.isNull(8))null else it.getDouble(8),if(it.isNull(9))null else it.getFloat(9),it.getString(10),it.getString(11))};return a}
     @Synchronized fun totals(run:Long):Map<String,Int>{val r=linkedMapOf<String,Int>();readableDatabase.rawQuery("SELECT code,SUM(delta) FROM sightings WHERE run_id=? GROUP BY code HAVING SUM(delta)>0",arrayOf(run.toString())).use{while(it.moveToNext())r[it.getString(0)]=it.getInt(1)};return r}
@@ -174,8 +174,8 @@ norpar|Northern Parula|Setophaga americana
     }
     @Synchronized fun recordFix(run:Long,location:Location){
         if(location.accuracy>150 || location.latitude !in -90.0..90.0 || location.longitude !in -180.0..180.0)return
-        writableDatabase.execSQL("INSERT INTO track(run_id,time_ms,lat,lon,accuracy) VALUES(?,?,?,?,?)",arrayOf(run,location.time,location.latitude,location.longitude,location.accuracy))
-        writableDatabase.execSQL("UPDATE runs SET lat=COALESCE(lat,?),lon=COALESCE(lon,?) WHERE id=?",arrayOf(location.latitude,location.longitude,run))
+        writableDatabase.execSQL("INSERT INTO track(run_id,time_ms,lat,lon,accuracy) VALUES(?,?,?,?,?)",arrayOf<Any?>(run,location.time,location.latitude,location.longitude,location.accuracy))
+        writableDatabase.execSQL("UPDATE runs SET lat=COALESCE(lat,?),lon=COALESCE(lon,?) WHERE id=?",arrayOf<Any?>(location.latitude,location.longitude,run))
     }
     @Synchronized fun track(run:Long):List<TrackFix>{val a=mutableListOf<TrackFix>();readableDatabase.rawQuery("SELECT time_ms,lat,lon,accuracy FROM track WHERE run_id=? ORDER BY time_ms",arrayOf(run.toString())).use{while(it.moveToNext())a+=TrackFix(it.getLong(0),it.getDouble(1),it.getDouble(2),it.getFloat(3))};return a}
     @Synchronized fun exportJson(id:Long):String{

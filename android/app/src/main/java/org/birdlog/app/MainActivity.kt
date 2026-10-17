@@ -57,7 +57,7 @@ class MainActivity:Activity(){
         banner.addView(label("◉  BIRDLOG",26f,true).apply{setTextColor(Color.WHITE)})
         banner.addView(label("PEBBLE TIME 2 • FIELD NOTEBOOK",11f).apply{setTextColor(Color.rgb(175,216,223))})
         root.addView(banner)
-        val scroll=ScrollView(this).apply{fillViewport=true}
+        val scroll=ScrollView(this).apply{isFillViewport=true}
         content=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(d(14),d(8),d(14),d(20))}
         scroll.addView(content);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
         status=label("Ready",12f).apply{setTextColor(Color.WHITE);setBackgroundColor(navy);setPadding(d(14),d(9),d(14),d(9))}
