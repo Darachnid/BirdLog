@@ -58,12 +58,12 @@ object BirdEngine {
     private suspend fun buildSpecies(context:Context):List<Bird>{
         val db=BirdStore.get(context);val all=db.birds();val rid=runId(context)
         val totals=if(rid>0)db.totals(rid) else emptyMap()
-        val recent=db.getSetting("recent_codes").split(',').filter{it.isNotBlank()}.toSet()
-        // Rank: recorded birds, nearby recent sightings (up to 30d), then complete taxonomy.
-        val filter = all // Full Massachusetts checklist; seasonal/geographic filtering deliberately disabled.
-        return filter.sortedWith(compareBy<Bird>({if(totals.containsKey(it.code))0 else if(it.code in recent)1 else 2},{it.priority},{it.common}))
+        // The watch checklist is an outing log, not the entire bird catalog.
+        // Keep all birds in SQLite for voice recognition and manual entry.
+        return all.filter{(totals[it.code] ?: 0) > 0}
+            .sortedWith(compareBy<Bird>({it.priority},{it.common}))
     }
-    fun cached(context:Context):List<Bird>{if(listCache.isEmpty())listCache=BirdStore.get(context).birds();return listCache}
+    fun cached(context:Context):List<Bird> = listCache
     suspend fun send(context:Context,packet:io.rebble.pebblekit2.common.model.PebbleDictionary){
         sendLock.withLock {
             try{
@@ -79,10 +79,12 @@ object BirdEngine {
     suspend fun sendPage(context:Context,page:Int){
         currentPage=page
         val db=BirdStore.get(context);val birds=cached(context);val id=runId(context)
+        val safePage=if(birds.isEmpty())0 else page.coerceIn(0,(birds.size-1)/12)
+        currentPage=safePage
         val o=if(id>0) db.run(id) else null
         send(context,Protocol.pkt(1,Protocol.TOTAL to birds.size,Protocol.RUN_ID to id.toInt(),Protocol.NAME to (o?.title?:"New outing")))
         val totals=if(id>0) db.totals(id) else emptyMap()
-        birds.drop(page*12).take(12).forEachIndexed { i,b ->
+        birds.drop(safePage*12).take(12).forEachIndexed { i,b ->
             send(context,Protocol.pkt(2,Protocol.INDEX to i,Protocol.COUNT to (totals[b.code]?:0),Protocol.NAME to b.common,Protocol.SCI to b.scientific))
         }
     }
@@ -144,7 +146,7 @@ object BirdEngine {
         if(n<1){status(context,"Say a positive bird count",true);return}
         val total=if(set)db.setTotal(id,b,n,"voice",lastLocation(context)) else db.log(id,b,n,"voice",lastLocation(context),text)
         status(context,"$total ${b.common}",true)
-        listCache=buildSpecies(context);sendPage(context,currentPage)
+        listCache=buildSpecies(context);sendPage(context,0)
     }
     suspend fun change(context:Context,index:Int,action:Int){
         val id=runId(context);val birds=cached(context)
