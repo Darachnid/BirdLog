@@ -1,0 +1,15 @@
+{
+  "name":"birdlog", "version":"1.0.0", "private":true,
+  "description":"Voice-first eBird field notebook for Pebble Time 2",
+  "author":"BirdLog", "license":"MIT",
+  "keywords":["pebble-app","birding","ebird","dictation"],
+  "pebble":{
+    "displayName":"BirdLog", "uuid":"b18d10a6-30b2-4b59-9549-b1a973e18041",
+    "sdkVersion":"3", "targetPlatforms":["emery"], "watchapp":{"watchface":false},
+    "enableMultiJS":false,
+    "resources":{"media":[]},
+    "messageKeys":{"TYPE":0,"INDEX":1,"COUNT":2,"NAME":3,"SCI":4,"LAT":5,"LON":6,"TIME":7,"TOTAL":8,"RUN_ID":9,"TEXT":10,"PAGE":11,"ACTION":12,"FLAGS":13},
+    "companionApp":{"android":{"apps":[{"package":"org.birdlog.app"}]}}
+  },
+  "dependencies":{}, "devDependencies":{}
+}

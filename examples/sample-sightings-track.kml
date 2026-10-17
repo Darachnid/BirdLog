@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2"><Document>
+<name>Concord Local Patch</name>
+<Style id="sighting"><IconStyle><color>ffff6e00</color><scale>0.75</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href></Icon></IconStyle></Style>
+<Placemark><name>Travel track</name><gx:Track>
+<when>2026-10-17T15:00:00Z</when>
+<when>2026-10-17T15:02:00Z</when>
+<gx:coord>-71.5 43.2 0</gx:coord>
+<gx:coord>-71.5 43.201 0</gx:coord>
+</gx:Track></Placemark>
+<Placemark><name>Black-capped Chickadee +1</name><styleUrl>#sighting</styleUrl><TimeStamp><when>2026-10-17T15:00:45Z</when></TimeStamp><description>Poecile atricapillus; 15:00; accuracy=8.0m; recorded near observer; event ID=1</description><ExtendedData><Data name="count_delta"><value>1</value></Data><Data name="interpolated"><value>false</value></Data></ExtendedData><Point><coordinates>-71.5,43.2,0</coordinates></Point></Placemark>
+<Placemark><name>American Crow +2</name><styleUrl>#sighting</styleUrl><TimeStamp><when>2026-10-17T15:01:20Z</when></TimeStamp><description>Corvus brachyrhynchos; 15:01; accuracy=9.0m; INTERPOLATED - not measured; event ID=3</description><ExtendedData><Data name="count_delta"><value>2</value></Data><Data name="interpolated"><value>true</value></Data></ExtendedData><Point><coordinates>-71.5,43.20066666666667,0</coordinates></Point></Placemark>
+<Folder><name>Final species totals</name><description>Black-capped Chickadee: 1; American Crow: 2</description></Folder></Document></kml>
