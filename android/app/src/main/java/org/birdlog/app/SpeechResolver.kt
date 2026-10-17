@@ -15,7 +15,7 @@ object SpeechResolver {
     fun resolve(context:Context,spoken:String,catalog:List<Bird>):Match?{
         val db=BirdStore.get(context);val text=spoken.lowercase(Locale.US).replace('-',' ')
         val normalized= {v:String->v.lowercase(Locale.US).replace('-', ' ').replace(Regex("[^a-z0-9 ]")," ").replace(Regex("\\s+")," ").trim()}
-        val candidate=catalog.filter{b->normalized(text).contains(normalized(b.common)) || normalized(text).contains(normalized(b.scientific))}
+        val candidate=catalog.filter{b->(normalized(b.common).length>=5 && normalized(text).contains(normalized(b.common))) || (b.scientific.isNotBlank() && normalized(text).contains(normalized(b.scientific)))}
             .maxByOrNull{it.common.length}
         if(candidate!=null)return Match(candidate.code,extractCount(text),Regex("\\b(total|set|change)\\b").containsMatchIn(text))
         val key=db.getSetting("groq_key");if(key.isBlank())return null

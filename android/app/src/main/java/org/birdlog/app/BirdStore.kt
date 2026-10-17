@@ -101,7 +101,36 @@ norpar|Northern Parula|Setophaga americana
     }
     @Synchronized fun getSetting(k:String,def:String=""):String{readableDatabase.rawQuery("SELECT value FROM settings WHERE key=?",arrayOf(k)).use{return if(it.moveToFirst())it.getString(0)else def}}
     @Synchronized fun setSetting(k:String,v:String){writableDatabase.execSQL("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)",arrayOf(k,v))}
-    @Synchronized fun birds():List<Bird>{val out=mutableListOf<Bird>();readableDatabase.rawQuery("SELECT code,common,scientific,priority FROM birds ORDER BY priority,common",null).use{while(it.moveToNext())out+=Bird(it.getString(0),it.getString(1),it.getString(2),it.getInt(3))};return out}
+    private var maChecked = false
+    @Synchronized private fun ensureMassachusetts(){
+        if(maChecked)return
+        val db=writableDatabase
+        if(getSetting("ma_catalog_v1")=="yes"){maChecked=true;return}
+        val names=try{appContext.assets.open("massachusetts_birds.txt").bufferedReader().use{it.readLines()}}catch(e:Exception){
+            android.util.Log.e("BirdLog","Missing Massachusetts catalog",e);return
+        }
+        val present=mutableSetOf<String>()
+        db.rawQuery("SELECT common FROM birds",null).use{while(it.moveToNext())present.add(it.getString(0).lowercase(java.util.Locale.US))}
+        val statement=db.compileStatement("INSERT OR IGNORE INTO birds(code,common,scientific,priority) VALUES(?,?,?,?)")
+        db.beginTransaction()
+        try{
+            names.forEachIndexed{index,raw->
+                val name=raw.trim()
+                if(name.isNotEmpty() && present.add(name.lowercase(java.util.Locale.US))){
+                    statement.clearBindings()
+                    statement.bindString(1,"ma_" + index.toString().padStart(4,'0'))
+                    statement.bindString(2,name)
+                    statement.bindString(3,"")
+                    statement.bindLong(4,100L+index)
+                    statement.executeInsert()
+                }
+            }
+            db.setTransactionSuccessful()
+        }finally{statement.close();db.endTransaction()}
+        setSetting("ma_catalog_v1","yes")
+        maChecked=true
+    }
+    @Synchronized fun birds():List<Bird>{ensureMassachusetts();val out=mutableListOf<Bird>();readableDatabase.rawQuery("SELECT code,common,scientific,priority FROM birds ORDER BY priority,common",null).use{while(it.moveToNext())out+=Bird(it.getString(0),it.getString(1),it.getString(2),it.getInt(3))};return out}
     @Synchronized fun mergeBirds(items:List<Bird>){
         val db=writableDatabase; db.beginTransaction()
         try{val st=db.compileStatement("INSERT OR REPLACE INTO birds(code,common,scientific,priority) VALUES(?,?,?,?)")

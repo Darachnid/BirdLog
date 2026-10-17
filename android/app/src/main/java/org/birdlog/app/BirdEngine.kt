@@ -60,7 +60,7 @@ object BirdEngine {
         val totals=if(rid>0)db.totals(rid) else emptyMap()
         val recent=db.getSetting("recent_codes").split(',').filter{it.isNotBlank()}.toSet()
         // Rank: recorded birds, nearby recent sightings (up to 30d), then complete taxonomy.
-        val filter = if(recent.isNotEmpty() && db.getSetting("show_all","N")!="Y") all.filter{it.code in recent || it.code in totals} else all
+        val filter = all // Full Massachusetts checklist; seasonal/geographic filtering deliberately disabled.
         return filter.sortedWith(compareBy<Bird>({if(totals.containsKey(it.code))0 else if(it.code in recent)1 else 2},{it.priority},{it.common}))
     }
     fun cached(context:Context):List<Bird>{if(listCache.isEmpty())listCache=BirdStore.get(context).birds();return listCache}
@@ -116,8 +116,8 @@ object BirdEngine {
         val norm={v:String->v.lowercase(Locale.US).replace("chickadees","chickadee").replace("geese","goose")
             .replace(Regex("[^a-z0-9 ]")," ").replace(Regex("\\s+")," ").trim()}
         val t=norm(text)
-        return birds.firstOrNull{norm(it.common)==t || norm(it.scientific)==t} ?:
-            birds.filter{t.contains(norm(it.common)) || t.contains(norm(it.scientific))}.maxByOrNull{it.common.length} ?:
+        return birds.firstOrNull{norm(it.common)==t || (it.scientific.isNotBlank() && norm(it.scientific)==t)} ?:
+            birds.filter{(norm(it.common).length>=5 && Regex("(^| )"+Regex.escape(norm(it.common))+"($| )").containsMatchIn(t)) || (it.scientific.isNotBlank() && Regex("(^| )"+Regex.escape(norm(it.scientific))+"($| )").containsMatchIn(t))}.maxByOrNull{it.common.length} ?:
             birds.filter{norm(it.common).contains(t)}.singleOrNull()
     }
     // Conservative parser. An LLM can propose a species/code, but the database validates it.
